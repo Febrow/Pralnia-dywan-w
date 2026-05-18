@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.DS_Store
+.vite/
+*.tsbuildinfo
+coverage/
+
+# PHP wariant
+php/config/config.php
+php/uploads/
+php/_dev_router.php
+php/_smoketest.php
+php/_test.Dockerfile

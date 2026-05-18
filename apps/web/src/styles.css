@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply antialiased text-ink bg-white;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  /* Blokada powiększania szczypaniem (mobile) */
+  html, body {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+  /* Wyłączenie podwójnego stuknięcia powiększającego na iOS */
+  * { -webkit-tap-highlight-color: transparent; }
+}
+
+/* ===== Wspólny CSS LISTY ZLECEŃ — używany przez WSZYSTKIE role ===== */
+.orders-list {
+  @apply w-full bg-white rounded-2xl shadow-tile border border-brand-50 overflow-hidden;
+}
+.orders-list table { @apply w-full text-sm; }
+.orders-list thead { @apply bg-brand-50 text-brand-700 uppercase text-xs; }
+.orders-list th { @apply px-3 py-2 text-left font-semibold tracking-wide; }
+.orders-list td { @apply px-3 py-2 border-t border-brand-50 align-top; }
+.orders-list tr:hover { @apply bg-brand-50/40; }
+.orders-list .order-number { @apply font-bold text-brand; }
+.orders-list .badge {
+  @apply inline-block text-[11px] px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100 font-medium;
+}
+.orders-list .badge-status-NEW { @apply bg-brand-50 text-brand-700 border-brand-100; }
+.orders-list .badge-status-IN_PROGRESS { @apply bg-accent-50 text-ink border-accent-300; }
+.orders-list .badge-status-ALL_READY { @apply bg-accent text-ink border-accent-600; }
+.orders-list .badge-status-PARTIALLY_DELIVERED { @apply bg-brand-100 text-brand-800 border-brand-200; }
+.orders-list .badge-status-COMPLETED { @apply bg-ink-50 text-ink border-ink-100; }
+
+@media (max-width: 640px) {
+  .orders-list-mobile-card {
+    @apply p-3 border-b border-brand-50 bg-white;
+  }
+}
+
+/* ===== Komponenty ===== */
+.btn {
+  @apply inline-flex items-center justify-center font-semibold rounded-xl transition
+         px-4 py-2 select-none;
+}
+.btn-primary {
+  @apply btn bg-brand text-white shadow-tile hover:bg-brand-600 hover:shadow-tile-hover
+         active:bg-brand-700 disabled:opacity-50;
+}
+.btn-accent {
+  @apply btn bg-accent text-ink shadow-tile hover:bg-accent-400 hover:shadow-tile-hover
+         active:bg-accent-600 disabled:opacity-50;
+}
+.btn-outline {
+  @apply btn bg-white text-brand border border-brand-200 hover:bg-brand-50;
+}
+.btn-ghost {
+  @apply btn text-brand hover:bg-brand-50;
+}
+
+/* Tile (duży kafelek do paneli) */
+.tile {
+  @apply relative flex flex-col items-start justify-between
+         rounded-2xl p-5 min-h-[120px]
+         shadow-tile hover:shadow-tile-hover transition
+         focus:outline-none focus-visible:ring-4 focus-visible:ring-accent;
+}
+.tile-icon {
+  @apply w-10 h-10 rounded-xl grid place-items-center text-2xl mb-2;
+}
+.tile-title { @apply text-base font-bold leading-tight; }
+.tile-subtitle { @apply text-xs opacity-80 mt-1; }
+
+/* Paski / nagłówki */
+.app-bar-brand { @apply bg-brand text-white; }
+.app-bar-ink   { @apply bg-ink text-white; }
