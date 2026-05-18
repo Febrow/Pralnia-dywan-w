@@ -40,26 +40,31 @@ Razem ~30 minut.
 
 # Krok 1. Pobierz paczkę aplikacji
 
+Masz **dwie opcje**, wybierz prostszą:
+
+## Opcja A (najprostsza) — gotowa paczka ZIP
+
+Pobierz gotową paczkę z repozytorium:
+- [release/pralnia-seohost.zip](../release/pralnia-seohost.zip) (~220 KB)
+
+Rozpakuj na komputerze. W środku jest folder `_release_pralnia/` z całą
+zawartością do wgrania na FTP — frontend już zbudowany, gotowy.
+
+## Opcja B — z repozytorium GitHub (jeśli potrafisz Node.js)
+
 Wejdź na repozytorium na GitHubie:
 [Febrow/Pralnia-dywan-w](https://github.com/Febrow/Pralnia-dywan-w),
 przełącz się na gałąź `feat/php-shared-hosting` i kliknij zielony przycisk
 **Code → Download ZIP**.
 
-Rozpakuj ZIP-a na komputerze. Zobaczysz strukturę:
-
+Rozpakuj ZIP-a na komputerze i jednorazowo zbuduj frontend (potrzebny
+[Node.js 20+](https://nodejs.org/download)):
+```bash
+npm install
+npm run build
 ```
-Pralnia-dywan-w-feat-php-shared-hosting/
-├── apps/web/dist/        ← skompilowany frontend (pliki HTML/JS/CSS)
-├── php/                  ← backend PHP
-└── ...
-```
-
-> **Uwaga:** w paczce ZIP może nie być folderu `apps/web/dist/`.
-> Wtedy potrzebujemy go jednorazowo zbudować — patrz „[Co jeśli nie
-> mam dist/](#co-jeśli-nie-mam-appswebdist)" na końcu instrukcji.
-
-W docelowej strukturze, którą będziesz wgrywać na serwer, połączymy
-te dwa katalogi (krok 3).
+Pojawi się katalog `apps/web/dist/` — to są pliki frontendu, które
+wgrywasz na FTP (krok 3 niżej).
 
 ---
 
@@ -112,8 +117,18 @@ prawej pliki **na serwerze**. Po prawej stronie wejdź do katalogu
 **`public_html`** (lub `domains/twojadomena.pl/public_html` jeśli masz
 wiele domen).
 
-Z paczki, którą rozpakowałeś (krok 1), wgraj **zawartość** poniższych
-katalogów do `public_html`:
+### Jeśli wybrałeś opcję A (gotowa paczka)
+
+Wgraj **całą zawartość** folderu `_release_pralnia/` (z rozpakowanego
+ZIP-a) do `public_html/` na serwerze. To znaczy: pliki `index.html`,
+`assets/`, `sw.js`, folder `php/`, `.htaccess` itd. — wszystko, co jest
+w środku `_release_pralnia/`, ma trafić bezpośrednio do `public_html/`.
+
+**To wszystko.** Pomiń sekcję 3.4 (`.htaccess` jest już w paczce).
+
+### Jeśli wybrałeś opcję B (z repozytorium)
+
+Wgraj **zawartość** poniższych katalogów do `public_html`:
 
 | Z paczki na komputerze | Gdzie wgrywasz na serwerze |
 | --- | --- |
@@ -139,7 +154,10 @@ public_html/
 └── (po instalacji) config/, uploads/
 ```
 
-## 3.4. Stwórz dodatkowy `.htaccess` w `public_html/`
+## 3.4. Stwórz dodatkowy `.htaccess` w `public_html/` (tylko opcja B)
+
+> Jeśli wybrałeś opcję A (gotowa paczka), **pomiń ten krok** — `.htaccess`
+> jest już w paczce.
 
 W programie FileZilla (po prawej stronie, w `public_html`) kliknij
 prawym → **„Utwórz nowy plik"** i nazwij go `.htaccess` (z kropką
