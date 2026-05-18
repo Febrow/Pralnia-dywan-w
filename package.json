@@ -1,0 +1,16 @@
+{
+  "name": "pralnia-dywanow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "System zarządzania pralnią dywanów (PWA) — wariant PHP/MySQL dla hostingu współdzielonego",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "build": "npm install && npm run -w apps/web build",
+    "dev:web": "npm run -w apps/web dev"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

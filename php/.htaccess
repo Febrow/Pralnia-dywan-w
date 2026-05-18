@@ -1,0 +1,32 @@
+# Routing dla aplikacji Pralnia (hosting współdzielony)
+# Wszystkie żądania trafiają do index.php (jak w klasycznym SPA + REST API).
+
+RewriteEngine On
+
+# Ochrona przed bezpośrednim dostępem do plików konfiguracyjnych
+<FilesMatch "^(config\.php|\.env|composer\.(json|lock))$">
+  Require all denied
+</FilesMatch>
+
+# Pliki uploadów — pozwól bezpośrednio (zdjęcia)
+RewriteCond %{REQUEST_URI} ^/uploads/
+RewriteRule ^ - [L]
+
+# Pliki statyczne frontu (zbudowanego w Vite) — pozwól bezpośrednio
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Wszystko inne → index.php
+RewriteRule ^ index.php [L]
+
+# Wyłącz listing katalogów
+Options -Indexes
+
+# UTF-8 jako default dla PHP
+AddDefaultCharset UTF-8
+
+# Limity uploadu zdjęć
+php_value upload_max_filesize 10M
+php_value post_max_size 15M
+php_value memory_limit 256M
