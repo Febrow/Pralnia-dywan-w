@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "db:setup": "prisma generate && prisma migrate deploy || prisma db push",
+    "db:setup": "prisma generate && prisma db push --accept-data-loss",
     "db:push": "prisma db push",
     "db:reset": "prisma migrate reset --force --skip-seed",
     "prisma:studio": "prisma studio"

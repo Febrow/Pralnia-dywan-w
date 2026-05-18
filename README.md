@@ -12,17 +12,30 @@ placówka sieci).
 ## Wymagania
 
 - **Node.js 20+** (testowane na 22).
+- **MySQL 5.7+** lub **MariaDB 10.4+** (lokalnie lub na hostingu).
 - npm (jest dołączony).
 
 ## Pierwsze uruchomienie
 
-```bash
-# 1. Zainstaluj zależności + przygotuj bazę + zbuduj frontend
-npm run setup
-
-# 2. Uruchom aplikację (backend + serwowanie zbudowanego frontu)
-npm start
-```
+1. Stwórz bazę MySQL i użytkownika:
+   ```sql
+   CREATE DATABASE pralnia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'pralnia'@'localhost' IDENTIFIED BY 'STRONG_PASSWORD';
+   GRANT ALL PRIVILEGES ON pralnia.* TO 'pralnia'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+2. Skonfiguruj `apps/api/.env`:
+   ```env
+   PORT=3000
+   JWT_SECRET=DLUGI-LOSOWY-CIAG
+   DATABASE_URL="mysql://pralnia:STRONG_PASSWORD@localhost:3306/pralnia"
+   UPLOAD_DIR=./data/uploads
+   ```
+3. Uruchom:
+   ```bash
+   npm run setup    # install + tabele w MySQL + build frontu
+   npm start        # serwer na porcie z .env (domyślnie 3000)
+   ```
 
 Otwórz przeglądarkę na **http://localhost:3000**. System wykryje, że nie
 ma jeszcze konta właściciela i pokaże **kreator instalacji** (5 kroków):
@@ -53,20 +66,33 @@ backendu.
 npm run db:reset
 ```
 
-Skasuje bazę SQLite (uwaga: dane przepadają). Uruchom potem ponownie
-`npm start`, żeby przejść instalację od zera.
+Skasuje wszystkie tabele w MySQL i odtworzy schemat (uwaga: dane
+przepadają). Uruchom potem ponownie `npm start`, żeby przejść instalację
+od zera.
+
+## Wdrożenie na hostingu lub VPS
+
+Pełna instrukcja krok po kroku dla VPS (Ubuntu + Nginx + PM2 + Let's
+Encrypt) i dla shared hostingu z panelem typu cPanel — zob.
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+Dla Docker:
+```bash
+cp .env.example .env       # wpisz silne hasła
+docker compose up -d --build
+```
 
 ## Struktura
 
 ```
 apps/
-  api/                Backend: Express + Prisma + SQLite
+  api/                Backend: Express + Prisma + MySQL
     src/
       server.ts       Wejście — Express + serwowanie frontendu (jeden port)
       routes/         Endpointy domenowe (auth, orders, rugs, scan, …)
       lib/            Wspólna logika (auth, statuses, notifications, prisma)
     prisma/schema.prisma
-    data/             Plik bazy SQLite + uploady (tworzone runtime)
+    data/             Folder na uploady (tworzony runtime)
   web/                Frontend: React + Vite + Tailwind + PWA
     src/
       panels/         Każda rola ma swój katalog z layoutem desktop+mobile

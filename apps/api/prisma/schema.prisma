@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -85,8 +85,8 @@ model Customer {
   lastName               String
   phone                  String
   email                  String
-  defaultPickupAddress   String?  // JSON
-  defaultDeliveryAddress String?  // JSON
+  defaultPickupAddress   String?  @db.Text  // JSON
+  defaultDeliveryAddress String?  @db.Text  // JSON
   consentSms             Boolean  @default(true)
   consentEmail           Boolean  @default(true)
   createdAt              DateTime @default(now())
@@ -106,10 +106,10 @@ model Order {
   acceptingBranchId   String
   acceptingUserId     String
   customerId          String
-  pickupAddress       String?  // JSON
-  deliveryAddress     String?  // JSON
-  notesForDriver      String?
-  internalNotes       String?
+  pickupAddress       String?  @db.Text  // JSON
+  deliveryAddress     String?  @db.Text  // JSON
+  notesForDriver      String?  @db.Text
+  internalNotes       String?  @db.Text
   declaredRugCount    Int?
   totalAreaM2         Float    @default(0)
   totalGrossPrice     Float    @default(0)
@@ -140,7 +140,7 @@ model Rug {
   packageId         String?
   pricePerM2        Float?
   totalPrice        Float?
-  notes             String?
+  notes             String?  @db.Text
   currentStatus     String
   physicalLocation  String?
   isFromPartner     Boolean  @default(false)
@@ -177,7 +177,7 @@ model RugStatusEvent {
   changedByUserId String
   changedAt       DateTime @default(now())
   source          String   @default("manual") // manual | serial_scan | system
-  comment         String?
+  comment         String?  @db.Text
 
   rug  Rug  @relation(fields: [rugId], references: [id], onDelete: Cascade)
   user User @relation(fields: [changedByUserId], references: [id])
@@ -246,7 +246,7 @@ model DriverDailySettlement {
   status             String   @default("PENDING")
   settledAt          DateTime?
   settledByUserId    String?
-  notes              String?
+  notes              String?  @db.Text
 
   driver       User                    @relation("driverSettlementOwner", fields: [driverUserId], references: [id])
   settledBy    User?                   @relation("settlementSettledBy", fields: [settledByUserId], references: [id])
@@ -275,10 +275,10 @@ model NotificationLog {
   trigger           String   // ORDER_ACCEPTED | READY_FOR_PICKUP | IN_DELIVERY_TODAY
   toAddress         String
   subject           String?
-  body              String
+  body              String   @db.Text
   status            String   @default("QUEUED")
   providerMessageId String?
-  error             String?
+  error             String?  @db.Text
   createdAt         DateTime @default(now())
   sentAt            DateTime?
 
@@ -291,8 +291,8 @@ model AuditEvent {
   entity       String
   entityId     String
   action       String
-  diff         String?  // JSON
-  context      String?  // JSON
+  diff         String?  @db.Text     // JSON
+  context      String?  @db.Text     // JSON
   createdAt    DateTime @default(now())
 
   actor User? @relation(fields: [actorUserId], references: [id])
@@ -300,6 +300,6 @@ model AuditEvent {
 
 model SystemSetting {
   key       String   @id
-  value     String   // JSON
+  value     String   @db.LongText  // JSON
   updatedAt DateTime @updatedAt
 }
