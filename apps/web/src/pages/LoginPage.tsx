@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useAuth } from '../lib/auth';
+import BrandLogo from '../components/BrandLogo';
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
@@ -18,22 +19,37 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center bg-gradient-to-br from-brand-700 to-brand-900 p-4">
-      <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md space-y-4">
-        <div className="text-center mb-2">
-          <div className="text-2xl font-bold text-brand-700">Pralnia Dywanów</div>
-          <div className="text-slate-500 text-sm">Zaloguj się, aby kontynuować</div>
+    <div className="min-h-screen grid place-items-center bg-brand p-4">
+      <form
+        onSubmit={onSubmit}
+        className="bg-white rounded-2xl shadow-tile p-8 w-full max-w-md space-y-4"
+      >
+        <div className="flex flex-col items-center gap-2 mb-2">
+          <BrandLogo variant="dark" size={48} />
+          <div className="text-ink/60 text-sm">Zaloguj się, aby kontynuować</div>
         </div>
         <label className="block">
-          <span className="text-sm text-slate-600">E-mail</span>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-brand-500" />
+          <span className="text-sm text-ink/70 font-medium">E-mail</span>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            required
+            className="mt-1 w-full rounded-xl border border-brand-100 px-3 py-2 focus:ring-4 focus:ring-accent/30 focus:border-brand outline-none"
+          />
         </label>
         <label className="block">
-          <span className="text-sm text-slate-600">Hasło</span>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required className="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-brand-500" />
+          <span className="text-sm text-ink/70 font-medium">Hasło</span>
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            required
+            className="mt-1 w-full rounded-xl border border-brand-100 px-3 py-2 focus:ring-4 focus:ring-accent/30 focus:border-brand outline-none"
+          />
         </label>
         {error && <div className="text-sm text-red-600">{error}</div>}
-        <button disabled={loading} className="w-full bg-brand-700 text-white rounded-lg py-2.5 font-medium hover:bg-brand-800 disabled:opacity-50">
+        <button disabled={loading} className="btn-primary w-full py-2.5 text-base">
           {loading ? 'Logowanie…' : 'Zaloguj się'}
         </button>
       </form>
