@@ -1,0 +1,26 @@
+{
+  "name": "pralnia-dywanow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "System zarządzania pralnią dywanów (PWA)",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "setup": "npm install && npm run -w apps/api db:setup && npm run -w apps/web build",
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run -w apps/api dev",
+    "dev:web": "npm run -w apps/web dev",
+    "build": "npm run -w apps/web build && npm run -w apps/api build",
+    "start": "npm run -w apps/api start",
+    "db:setup": "npm run -w apps/api db:setup",
+    "db:reset": "npm run -w apps/api db:reset"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
