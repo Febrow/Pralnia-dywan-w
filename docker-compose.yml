@@ -1,0 +1,36 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pralnia}
+      MYSQL_USER: ${MYSQL_USER:-pralnia}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pralnia}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-please-change-this-in-production}
+      DATABASE_URL: "mysql://${MYSQL_USER:-pralnia}:${MYSQL_PASSWORD:-pralnia}@mysql:3306/${MYSQL_DATABASE:-pralnia}"
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+volumes:
+  mysql_data:
+  uploads:

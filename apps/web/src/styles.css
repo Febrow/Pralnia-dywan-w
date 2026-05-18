@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply antialiased; }
+}
+
+/* ===== Wspólny CSS LISTY ZLECEŃ — używany przez WSZYSTKIE role ===== */
+.orders-list {
+  @apply w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden;
+}
+.orders-list table { @apply w-full text-sm; }
+.orders-list thead { @apply bg-slate-100 text-slate-600 uppercase text-xs; }
+.orders-list th { @apply px-3 py-2 text-left font-medium; }
+.orders-list td { @apply px-3 py-2 border-t border-slate-100 align-top; }
+.orders-list tr:hover { @apply bg-slate-50; }
+.orders-list .order-number { @apply font-semibold text-brand-700; }
+.orders-list .badge {
+  @apply inline-block text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200;
+}
+.orders-list .badge-status-NEW { @apply bg-slate-100 text-slate-700; }
+.orders-list .badge-status-IN_PROGRESS { @apply bg-amber-100 text-amber-800 border-amber-200; }
+.orders-list .badge-status-ALL_READY { @apply bg-emerald-100 text-emerald-800 border-emerald-200; }
+.orders-list .badge-status-PARTIALLY_DELIVERED { @apply bg-sky-100 text-sky-800 border-sky-200; }
+.orders-list .badge-status-COMPLETED { @apply bg-slate-200 text-slate-700; }
+
+@media (max-width: 640px) {
+  .orders-list-mobile-card {
+    @apply p-3 border-b border-slate-100 bg-white;
+  }
+}

@@ -1,0 +1,305 @@
+// Pralnia Dywanów — schemat bazy
+// Pełny opis modelu znajduje się w docs/03-model-danych.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================================================
+// Słowniki / enumy (w SQLite trzymamy jako string)
+// =========================================================
+// Role: OWNER, STATIONARY_BRANCH_WORKER, WASHING_WORKER,
+//       DRIVER, LOGISTICS, PARTNER_BRANCH, STATIONARY_BRANCH
+//
+// BranchType: CENTRAL_WAREHOUSE, STATIONARY, PARTNER
+//
+// OrderSource: STATIONARY, CENTRAL_WAREHOUSE, LOGISTICS_PHONE,
+//              DRIVER_FIELD, PARTNER
+//
+// RugStatus: ORDER_PICKUP_ACCEPTED, ACCEPTED_AT_PARTNER,
+//   PICKED_UP_FROM_PARTNER, PICKED_UP_FROM_CUSTOMER,
+//   ACCEPTED_AT_CENTRAL, WASHING, IMPREGNATION, MITE_REMOVAL,
+//   ODOR_REMOVAL, HAIR_REMOVAL, FRINGE_CLEANING, FOIL_PACKING,
+//   OZONATION, DRYING, READY_FOR_PICKUP, READY_FOR_DELIVERY,
+//   IN_DELIVERY, DELIVERED, DELIVERED_TO_CUSTOMER
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships              Membership[]
+  ordersAccepted           Order[]                  @relation("orderAcceptedBy")
+  driverOrders             Order[]                  @relation("orderDriver")
+  rugPhotos                RugPhoto[]
+  statusEvents             RugStatusEvent[]
+  driverSettlements        DriverDailySettlement[]  @relation("driverSettlementOwner")
+  settlementsSettled       DriverDailySettlement[]  @relation("settlementSettledBy")
+  auditEvents              AuditEvent[]
+}
+
+model Branch {
+  id                 String   @id @default(cuid())
+  type               String   // CENTRAL_WAREHOUSE | STATIONARY | PARTNER
+  name               String
+  city               String?
+  address            String?
+  isActive           Boolean  @default(true)
+  partnerPriceListId String?
+  partnerPriceList   PriceList? @relation("partnerPriceList", fields: [partnerPriceListId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  memberships     Membership[]
+  ordersAccepted  Order[]    @relation("orderAcceptingBranch")
+  partnerOrders   Order[]    @relation("orderPartnerBranch")
+  ownPriceLists   PriceList[] @relation("priceListOwnerBranch")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  branchId  String
+  role      String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch    Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, branchId])
+}
+
+model Customer {
+  id                     String   @id @default(cuid())
+  firstName              String
+  lastName               String
+  phone                  String
+  email                  String
+  defaultPickupAddress   String?  @db.Text  // JSON
+  defaultDeliveryAddress String?  @db.Text  // JSON
+  consentSms             Boolean  @default(true)
+  consentEmail           Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  orders Order[]
+
+  @@index([phone])
+  @@index([email])
+  @@index([lastName])
+}
+
+model Order {
+  id                  String   @id @default(cuid())
+  number              String   @unique
+  source              String
+  acceptingBranchId   String
+  acceptingUserId     String
+  customerId          String
+  pickupAddress       String?  @db.Text  // JSON
+  deliveryAddress     String?  @db.Text  // JSON
+  notesForDriver      String?  @db.Text
+  internalNotes       String?  @db.Text
+  declaredRugCount    Int?
+  totalAreaM2         Float    @default(0)
+  totalGrossPrice     Float    @default(0)
+  computedStatus      String   @default("NEW")
+  driverId            String?
+  partnerBranchId     String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  acceptingBranch Branch @relation("orderAcceptingBranch", fields: [acceptingBranchId], references: [id])
+  acceptingUser   User   @relation("orderAcceptedBy", fields: [acceptingUserId], references: [id])
+  customer        Customer @relation(fields: [customerId], references: [id])
+  driver          User?  @relation("orderDriver", fields: [driverId], references: [id])
+  partnerBranch   Branch? @relation("orderPartnerBranch", fields: [partnerBranchId], references: [id])
+
+  rugs              Rug[]
+  notifications     NotificationLog[]
+  settlementItems   DriverSettlementItem[]
+}
+
+model Rug {
+  id                String   @id @default(cuid())
+  orderId           String
+  qrCode            String   @unique
+  widthCm           Int?
+  heightCm          Int?
+  areaM2            Float?
+  packageId         String?
+  pricePerM2        Float?
+  totalPrice        Float?
+  notes             String?  @db.Text
+  currentStatus     String
+  physicalLocation  String?
+  isFromPartner     Boolean  @default(false)
+  isFromDriverPickup Boolean @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  package      Package? @relation(fields: [packageId], references: [id])
+  photos       RugPhoto[]
+  statusEvents RugStatusEvent[]
+  settlementItems DriverSettlementItem[]
+
+  @@index([currentStatus])
+  @@index([physicalLocation])
+}
+
+model RugPhoto {
+  id               String   @id @default(cuid())
+  rugId            String
+  storageKey       String
+  takenAt          DateTime @default(now())
+  uploadedByUserId String
+
+  rug    Rug  @relation(fields: [rugId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [uploadedByUserId], references: [id])
+}
+
+model RugStatusEvent {
+  id              String   @id @default(cuid())
+  rugId           String
+  fromStatus      String?
+  toStatus        String
+  changedByUserId String
+  changedAt       DateTime @default(now())
+  source          String   @default("manual") // manual | serial_scan | system
+  comment         String?  @db.Text
+
+  rug  Rug  @relation(fields: [rugId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [changedByUserId], references: [id])
+}
+
+model QrCode {
+  code      String   @id
+  status    String   @default("AVAILABLE") // AVAILABLE | ASSIGNED | ARCHIVED
+  rugId     String?
+  createdAt DateTime @default(now())
+  archivedAt DateTime?
+}
+
+model Package {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  pricePerM2  Float
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  rugs           Rug[]
+  requiredSteps  RequiredStep[]
+  priceItems     PriceListItem[]
+}
+
+model RequiredStep {
+  id        String @id @default(cuid())
+  packageId String
+  status    String
+  sortOrder Int    @default(0)
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, status])
+}
+
+model PriceList {
+  id            String   @id @default(cuid())
+  ownerBranchId String
+  name          String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  ownerBranch     Branch          @relation("priceListOwnerBranch", fields: [ownerBranchId], references: [id], onDelete: Cascade)
+  items           PriceListItem[]
+  partnerBranches Branch[]        @relation("partnerPriceList")
+}
+
+model PriceListItem {
+  id          String @id @default(cuid())
+  priceListId String
+  packageId   String
+  pricePerM2  Float
+
+  priceList PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  package   Package   @relation(fields: [packageId], references: [id])
+
+  @@unique([priceListId, packageId])
+}
+
+model DriverDailySettlement {
+  id                 String   @id @default(cuid())
+  driverUserId       String
+  day                String   // YYYY-MM-DD
+  totalCashCollected Float    @default(0)
+  status             String   @default("PENDING")
+  settledAt          DateTime?
+  settledByUserId    String?
+  notes              String?  @db.Text
+
+  driver       User                    @relation("driverSettlementOwner", fields: [driverUserId], references: [id])
+  settledBy    User?                   @relation("settlementSettledBy", fields: [settledByUserId], references: [id])
+  items        DriverSettlementItem[]
+
+  @@unique([driverUserId, day])
+}
+
+model DriverSettlementItem {
+  id              String   @id @default(cuid())
+  settlementId    String
+  orderId         String
+  rugId           String
+  amountCollected Float
+  collectedAt     DateTime @default(now())
+
+  settlement DriverDailySettlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  order      Order                 @relation(fields: [orderId], references: [id])
+  rug        Rug                   @relation(fields: [rugId], references: [id])
+}
+
+model NotificationLog {
+  id                String   @id @default(cuid())
+  orderId           String
+  channel           String   // SMS | EMAIL
+  trigger           String   // ORDER_ACCEPTED | READY_FOR_PICKUP | IN_DELIVERY_TODAY
+  toAddress         String
+  subject           String?
+  body              String   @db.Text
+  status            String   @default("QUEUED")
+  providerMessageId String?
+  error             String?  @db.Text
+  createdAt         DateTime @default(now())
+  sentAt            DateTime?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id           String   @id @default(cuid())
+  actorUserId  String?
+  entity       String
+  entityId     String
+  action       String
+  diff         String?  @db.Text     // JSON
+  context      String?  @db.Text     // JSON
+  createdAt    DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String   @db.LongText  // JSON
+  updatedAt DateTime @updatedAt
+}
